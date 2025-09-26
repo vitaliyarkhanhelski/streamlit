@@ -34,7 +34,7 @@ st.markdown("""
         display: flex !important;
         justify-content: center !important;
         margin: 1rem auto !important;
-        position: relative;
+        position: center;
         width: fit-content !important;
     }
     .stButton::after {
@@ -133,8 +133,8 @@ st.markdown('<h1 class="main-header">Big Important Meeting! 🚀</h1>', unsafe_a
 
 # Add the Temple Bar image
 st.markdown('<div class="image-container">', unsafe_allow_html=True)
-st.image("https://templebarbcn.com/wp-content/uploads/2022/08/20-TempleMyBar_by_WitekPhotography_RECORTADA-1024x576.jpg", 
-         caption="Temple Bar Barcelona - A beautiful bar experience")
+st.image("Bear.jpeg", 
+         caption="Temple Bar Barcelona - A beautiful bear experience")
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="ceremonial-welcome">Glad to see you all here!</div>', unsafe_allow_html=True)
