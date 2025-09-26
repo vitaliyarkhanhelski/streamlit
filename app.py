@@ -33,7 +33,7 @@ st.markdown("""
     .stButton {
         display: flex !important;
         justify-content: center !important;
-        margin: 1rem auto !important;
+        margin: 0.5rem auto !important;
         position: center;
         width: fit-content !important;
     }
@@ -102,7 +102,7 @@ st.markdown("""
     }
     .ceremonial-welcome {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        padding: 1rem;
+        padding: 0.5rem;
         border-radius: 15px;
         text-align: center;
         font-size: 1.3rem;
@@ -110,11 +110,11 @@ st.markdown("""
         color: white;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-        margin: 1rem 0;
+        margin: 0.5rem 0;
         border: 2px solid rgba(255, 255, 255, 0.2);
     }
     .image-container {
-        margin: 0.4rem auto;
+        margin: 0rem auto;
         max-width: 600px;
         text-align: center;
     }
@@ -129,11 +129,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-header">Big Important Meeting! 🚀</h1>', unsafe_allow_html=True)
+st.markdown('<h2 class="main-header">Big Important Meeting! 🚀</h2>', unsafe_allow_html=True)
 
 # Add the Temple Bar image
 st.markdown('<div class="image-container">', unsafe_allow_html=True)
-st.image("Bear.jpeg", 
+st.image("Bear.png", 
          caption="Temple Bar Barcelona - A beautiful bear experience")
 st.markdown('</div>', unsafe_allow_html=True)
 
