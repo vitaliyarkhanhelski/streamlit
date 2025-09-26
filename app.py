@@ -8,7 +8,8 @@ st.markdown("""
         font-size: 3rem;
         color: #1f77b4;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 0rem;
+        margin-top: 0rem;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         -webkit-background-clip: text;
@@ -26,8 +27,35 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
     .stButton > button:hover {
-        transform: translateY(-2px);
+        transform: translateY(-2px) scale(1.1);
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    .stButton {
+        display: flex;
+        justify-content: center;
+        margin: 1rem 0;
+        position: relative;
+    }
+    .stButton::after {
+        content: "👆";
+        position: absolute;
+        left: 50%;
+        top: 100%;
+        transform: translateX(-50%);
+        font-size: 2.5rem;
+        animation: pointDown 2s ease-in-out infinite;
+        z-index: 10;
+        margin-top: 10px;
+    }
+    @keyframes pointDown {
+        0%, 100% { 
+            transform: translateX(-50%) translateY(-20px);
+            opacity: 0.7;
+        }
+        50% { 
+            transform: translateX(-50%) translateY(5px);
+            opacity: 1;
+        }
     }
     .stTextInput > div > div > input {
         border-radius: 15px;
@@ -65,27 +93,59 @@ st.markdown("""
     .stApp {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     }
+    .main .block-container {
+        padding-top: 0rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 100%;
+    }
+    .ceremonial-welcome {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        padding: 1rem;
+        border-radius: 15px;
+        text-align: center;
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: white;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+        margin: 1rem 0;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+    .image-container {
+        margin: 0.4rem auto;
+        max-width: 600px;
+        text-align: center;
+    }
+    .image-container img {
+        display: block;
+        margin: 0 auto;
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-header">Hello Streamlit 🚀</h1>', unsafe_allow_html=True)
-st.write("This is my first Streamlit app!")
+st.markdown('<h1 class="main-header">Big Important Meeting! 🚀</h1>', unsafe_allow_html=True)
 
-name = st.text_input("Enter your name:")
+# Add the Temple Bar image
+st.markdown('<div class="image-container">', unsafe_allow_html=True)
+st.image("https://templebarbcn.com/wp-content/uploads/2022/08/20-TempleMyBar_by_WitekPhotography_RECORTADA-1024x576.jpg", 
+         caption="Temple Bar Barcelona - A beautiful bar experience")
+st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('<div class="ceremonial-welcome">Glad to see you all here!</div>', unsafe_allow_html=True)
+
+name = "FRIENDS"
 if st.button("Greet"):
-    if name:
-        # Check if name is not a number
-        if name.isdigit():
-            st.error("Please enter a real name, not just numbers! 😅")
-        else:
-            # Add some fun greetings
-            greetings = [
-                f"Hello, {name}! 👋",
-                f"Hey there, {name}! 😊",
-                f"Greetings, {name}! 🌟",
-                f"Nice to meet you, {name}! 🤝"
-            ]
-            st.markdown(f'<div class="success-message">{random.choice(greetings)}</div>', unsafe_allow_html=True)
-            st.balloons()  # Add some celebration!
-    else:
-        st.warning("Please enter your name first! 😅")
+    # Add some fun greetings
+    greetings = [
+        f"Hello, {name}! 👋",
+        f"Hey there, {name}! 😊",
+        f"Greetings, {name}! 🌟",
+        f"Nice to meet you, {name}! 🤝"
+    ]
+    st.markdown(f'<div class="success-message">{random.choice(greetings)}</div>', unsafe_allow_html=True)
+    st.balloons()  # Add some celebration!
