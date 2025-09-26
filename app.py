@@ -31,10 +31,11 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
     }
     .stButton {
-        display: flex;
-        justify-content: center;
-        margin: 1rem 0;
+        display: flex !important;
+        justify-content: center !important;
+        margin: 1rem auto !important;
         position: relative;
+        width: fit-content !important;
     }
     .stButton::after {
         content: "👆";
@@ -139,6 +140,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('<div class="ceremonial-welcome">Glad to see you all here!</div>', unsafe_allow_html=True)
 
 name = "FRIENDS"
+st.markdown('<div style="display: flex; justify-content: center; width: 100%;">', unsafe_allow_html=True)
 if st.button("Greet"):
     # Add some fun greetings
     greetings = [
@@ -149,3 +151,4 @@ if st.button("Greet"):
     ]
     st.markdown(f'<div class="success-message">{random.choice(greetings)}</div>', unsafe_allow_html=True)
     st.balloons()  # Add some celebration!
+st.markdown('</div>', unsafe_allow_html=True)
