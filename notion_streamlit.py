@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from notion import NotionTaskManager
 import time
 
 # Load environment variables
-load_dotenv()
+# load_dotenv()
 
 # Page configuration
 st.set_page_config(
