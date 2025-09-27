@@ -133,8 +133,8 @@ st.markdown('<h2 class="main-header">Big Important Meeting! 🚀</h2>', unsafe_a
 
 # Add the Temple Bar image
 st.markdown('<div class="image-container">', unsafe_allow_html=True)
-st.image("Bear.png", 
-         caption="Temple Bar Barcelona - A beautiful bear experience")
+st.image("Beer.png", 
+         caption="Temple Bar Barcelona - A beautiful beer experience")
 st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('<div class="ceremonial-welcome">Glad to see you all here!</div>', unsafe_allow_html=True)
