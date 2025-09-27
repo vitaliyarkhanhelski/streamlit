@@ -377,8 +377,10 @@ document.addEventListener('DOMContentLoaded', function() {
 """, unsafe_allow_html=True)
 
 # Configuration from environment variables
-AUTH_TOKEN = os.getenv("NOTION_AUTH_TOKEN") or st.secrets["NOTION_AUTH_TOKEN"]
-DATABASE_ID = os.getenv("NOTION_DATABASE_ID") or st.secrets["NOTION_DATABASE_ID"]
+# AUTH_TOKEN = os.getenv("NOTION_AUTH_TOKEN") or st.secrets["NOTION_AUTH_TOKEN"]
+AUTH_TOKEN = st.secrets["NOTION_AUTH_TOKEN"]
+# DATABASE_ID = os.getenv("NOTION_DATABASE_ID") or st.secrets["NOTION_DATABASE_ID"]
+DATABASE_ID = st.secrets["NOTION_DATABASE_ID"]
 print(AUTH_TOKEN)
 print(DATABASE_ID)
 
