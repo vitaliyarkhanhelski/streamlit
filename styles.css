@@ -130,7 +130,7 @@
 
 /* Reduce margins around horizontal separators */
 .stMarkdown hr {
-    margin: 0.25rem 0 !important;
+    margin: 0 !important;
 }
 
 /* Reduce spacing in task list */
