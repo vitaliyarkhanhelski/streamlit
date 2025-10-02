@@ -58,25 +58,6 @@ st.markdown("""
             opacity: 1;
         }
     }
-    .stTextInput > div > div > input {
-        border-radius: 15px;
-        border: 2px solid #e0e0e0;
-        padding: 0.5rem 1rem;
-        transition: all 0.3s ease;
-    }
-    .stTextInput > div > div > input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 15px rgba(102, 126, 234, 0.4);
-        outline: none;
-    }
-    .stTextInput > div {
-        border: none !important;
-        box-shadow: none !important;
-    }
-    .stTextInput > div > div {
-        border: none !important;
-        box-shadow: none !important;
-    }
     .success-message {
         background: linear-gradient(90deg, #56ab2f 0%, #a8e6cf 100%);
         padding: 1rem;
