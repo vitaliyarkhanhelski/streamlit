@@ -1,0 +1,152 @@
+/**
+ * Notion Task Manager - Custom Stylesheet
+ * 
+ * This stylesheet provides custom styling for the Streamlit-based Notion Task Manager.
+ * It overrides default Streamlit styles to create a beautiful, cohesive UI with:
+ * - Gradient background with glassmorphism effects
+ * - Custom button colors and hover states
+ * - Typography customization for better readability
+ * - Optimized spacing for task list layout
+ * 
+ * Structure:
+ *   1. PAGE LAYOUT - Background gradients and container styling
+ *   2. TYPOGRAPHY - Headers, text colors, and font weights
+ *   3. BUTTONS - Color schemes and hover effects for different button types
+ *   4. SPACING & LAYOUT - Margins, padding, and box model adjustments
+ * 
+ * Note: Button scaling animations are handled by JavaScript in style_helper.py
+ * 
+ * Color Palette:
+ *   - Background gradient: #c6cffd to #d0c3e8 (purple/lavender)
+ *   - Primary text: #2c3e50 (dark blue-gray)
+ *   - Headers: #1a1a1a (near black)
+ *   - Primary buttons: #28a745 (green) / #ff4b4b (red for forms)
+ *   - Secondary buttons: white with #ff4b4b hover
+ * 
+ * Usage:
+ *   This file is loaded by StyleHelper class in style_helper.py
+ */
+
+/* ========================================
+   PAGE LAYOUT
+   ======================================== */
+
+/* Page background - lighter gradient */
+.stApp {
+    background: linear-gradient(135deg, #c6cffd 0%, #d0c3e8 100%) !important;
+    min-height: 100vh;
+}
+
+/* Main content area background */
+.main .block-container {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    border-radius: 15px !important;
+    padding: 2rem !important;
+    margin: 1rem !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* ========================================
+   TYPOGRAPHY
+   ======================================== */
+
+/* Header styling */
+.main .block-container h1 {
+    color: #1a1a1a !important;
+    text-align: center !important;
+    margin-bottom: 2rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Subheader styling */
+.main .block-container h2,
+.main .block-container h3 {
+    color: #2c3e50 !important;
+    font-weight: 600 !important;
+}
+
+/* General text content */
+.stApp .main .block-container * {
+    color: #2c3e50 !important;
+}
+
+/* Strong/bold text */
+.main .block-container strong,
+.main .block-container b {
+    color: #1a1a1a !important;
+    font-weight: 700 !important;
+}
+
+/* Task name text */
+.stApp .main .block-container .stWrite p {
+    color: #1a1a1a !important;
+    font-weight: 600 !important;
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+/* Secondary buttons (Edit, Refresh) */
+.stButton > button[kind="secondary"] {
+    background-color: white !important;
+    color: #333333 !important;
+    border: 1px solid #cccccc !important;
+    border-radius: 5px !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.stButton > button[kind="secondary"]:hover {
+    background-color: #ff4b4b !important;
+    color: white !important;
+    border-color: #ff4b4b !important;
+}
+
+/* Primary buttons - default green (Delete, Save, Cancel) */
+.stButton > button[kind="primary"] {
+    background-color: #28a745 !important;
+    color: white !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.stButton > button[kind="primary"]:hover {
+    background-color: #218838 !important;
+}
+
+/* Form buttons - red (Add Task) */
+.stForm .stButton > button[kind="primary"] {
+    background-color: #ff4b4b !important;
+}
+
+.stForm .stButton > button[kind="primary"]:hover {
+    background-color: #ff3333 !important;
+}
+
+/* Note: Button scaling is handled by JavaScript in style_helper.py */
+
+/* ========================================
+   SPACING & LAYOUT
+   ======================================== */
+
+/* Reduce margins around horizontal separators */
+.stMarkdown hr {
+    margin: 0.25rem 0 !important;
+}
+
+/* Reduce spacing in task list */
+.stMarkdown p {
+    margin: 0.25rem 0 !important;
+}
+
+/* Apply border-box to columns and metrics */
+.stColumns > div,
+.stMetric,
+.stMetric > div {
+    box-sizing: border-box !important;
+}

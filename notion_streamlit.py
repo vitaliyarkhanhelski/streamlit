@@ -1,12 +1,42 @@
+"""
+Notion Task Manager - Streamlit Web Application
+
+This is the main Streamlit application that provides a beautiful web interface
+for managing tasks in a Notion database. Users can create, view, edit, update,
+and delete tasks with real-time synchronization to Notion.
+
+Features:
+    - Add new tasks with custom status
+    - Filter tasks by status (All, Not started, In progress, Done)
+    - Edit task names inline
+    - Update task status with dropdown selectors
+    - Delete (archive) tasks
+    - Visual status icons and metrics dashboard
+    - Beautiful gradient UI with custom styling
+
+Dependencies:
+    - streamlit: Web application framework
+    - pandas: Data manipulation
+    - notion_manager: Notion API integration
+    - style_helper: Custom CSS and JavaScript styling
+
+Configuration:
+    Requires Streamlit secrets in .streamlit/secrets.toml:
+    - NOTION_AUTH_TOKEN: Notion API authentication token
+    - NOTION_DATABASE_ID: Target Notion database ID
+    
+    Example .streamlit/secrets.toml:
+        NOTION_AUTH_TOKEN = "secret_xxxxxxxxxxxxx"
+        NOTION_DATABASE_ID = "xxxxxxxxxxxxx"
+
+Usage:
+    streamlit run notion_streamlit.py
+"""
+
 import streamlit as st
 import pandas as pd
-import os
-# from dotenv import load_dotenv
-from notion import NotionTaskManager
-import time
-
-# Load environment variables
-# load_dotenv()
+from notion_manager import NotionTaskManager
+from style_helper import StyleHelper
 
 # Page configuration
 st.set_page_config(
@@ -15,374 +45,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for Edit button, Save button, and page background
-st.markdown("""
-<style>
-    /* Page background - lighter gradient */
-    .stApp {
-        background: linear-gradient(135deg, #a8b5ff 0%, #b19cd9 100%) !important;
-        min-height: 100vh;
-    }
-    
-    /* Main content area background */
-    .main .block-container {
-        background-color: rgba(255, 255, 255, 0.98) !important;
-        border-radius: 15px !important;
-        padding: 2rem !important;
-        margin: 1rem !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
-        backdrop-filter: blur(10px) !important;
-    }
-    
-    /* Header styling */
-    .main .block-container h1 {
-        color: #1a1a1a !important;
-        text-align: center !important;
-        margin-bottom: 2rem !important;
-        font-weight: 700 !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    /* Subheader styling */
-    .main .block-container h2, .main .block-container h3 {
-        color: #2c3e50 !important;
-        font-weight: 600 !important;
-    }
-    
-    /* All text content styling - more comprehensive targeting */
-    .main .block-container p,
-    .main .block-container div,
-    .main .block-container span,
-    .main .block-container label,
-    .main .block-container .stText,
-    .main .block-container .stMarkdown,
-    .main .block-container .stWrite,
-    .main .block-container .stSelectbox,
-    .main .block-container .stTextInput,
-    .main .block-container .stDataFrame,
-    .main .block-container .stColumns,
-    .main .block-container .stMetric,
-    .main .block-container .stSuccess,
-    .main .block-container .stError,
-    .main .block-container .stWarning,
-    .main .block-container .stInfo {
-        color: #2c3e50 !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Strong/bold text */
-    .main .block-container strong,
-    .main .block-container b {
-        color: #1a1a1a !important;
-        font-weight: 700 !important;
-    }
-    
-    /* Override any Streamlit default text colors */
-    .stApp .main .block-container * {
-        color: #2c3e50 !important;
-    }
-    
-    /* Specific overrides for Streamlit components */
-    .stApp .main .block-container .stText > div,
-    .stApp .main .block-container .stMarkdown > div,
-    .stApp .main .block-container .stWrite > div {
-        color: #2c3e50 !important;
-    }
-    
-    /* Task name text specifically */
-    .stApp .main .block-container .stWrite p {
-        color: #1a1a1a !important;
-        font-weight: 600 !important;
-    }
-    
-    /* Button styling - white secondary buttons */
-    .stButton > button[kind="secondary"] {
-        background-color: white !important;
-        color: #333333 !important;
-        border: 1px solid #cccccc !important;
-        border-radius: 5px !important;
-        padding: 0.5rem 1rem !important;
-        font-size: 0.9rem !important;
-        font-weight: 500 !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton > button[kind="secondary"]:hover {
-        background-color: #ff4b4b !important;
-        color: white !important;
-        border-color: #ff4b4b !important;
-        transform: translateY(-1px) scale(1.1) !important;
-    }
-    
-    /* Make all primary buttons green by default */
-    .stButton > button[kind="primary"] {
-        background-color: #28a745 !important;
-        color: white !important;
-        border: none !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton > button[kind="primary"]:hover {
-        background-color: #218838 !important;
-        transform: scale(1.1) !important;
-    }
-    
-    /* Override Add Task button to be red */
-    .stForm .stButton > button[kind="primary"] {
-        background-color: #ff4b4b !important;
-        transition: all 0.3s ease !important;
-    }
-    .stForm .stButton > button[kind="primary"]:hover {
-        background-color: #ff3333 !important;
-        transform: scale(1.1) !important;
-    }
-    
-    /* Override Refresh button to be blue like Edit button */
-    .stButton > button[kind="primary"][data-testid*="refresh"],
-    .stButton > button[kind="primary"][aria-label*="Refresh"],
-    .stButton > button[kind="primary"]:has-text("Refresh") {
-        background-color: #1f77b4 !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 5px !important;
-        padding: 0.5rem 1rem !important;
-        font-size: 0.9rem !important;
-        font-weight: 500 !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton > button[kind="primary"][data-testid*="refresh"]:hover,
-    .stButton > button[kind="primary"][aria-label*="Refresh"]:hover,
-    .stButton > button[kind="primary"]:has-text("Refresh"):hover {
-        background-color: #0d5a8a !important;
-        transform: translateY(-1px) scale(1.1) !important;
-    }
-    
-    
-    /* Universal button hover scaling - more specific selectors */
-    .stApp .stButton > button:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Override any conflicting transforms - more specific for Edit button */
-    .stApp .stButton > button[kind="secondary"]:hover,
-    .stApp .main .block-container .stButton > button[kind="secondary"]:hover,
-    .stApp .stButton button[kind="secondary"]:hover {
-        transform: translateY(-1px) scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .stApp .stButton > button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-    }
-    
-    .stApp .stForm .stButton > button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-    }
-    
-    /* Extra specific rules for Edit button scaling */
-    .stApp .stButton button:contains("Edit"):hover,
-    .stApp .stButton button[aria-label*="Edit"]:hover {
-        transform: translateY(-1px) scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Force scaling on all secondary buttons with !important */
-    .stApp .stButton > button[kind="secondary"]:hover {
-        transform: translateY(-1px) scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Nuclear option - target all buttons with maximum specificity */
-    .stApp .main .block-container .stButton button[kind="secondary"]:hover {
-        transform: translateY(-1px) scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Even more specific for the task rows */
-    .stApp .main .block-container .stColumns .stButton button[kind="secondary"]:hover {
-        transform: translateY(-1px) scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Delete button scaling - multiple specific selectors */
-    .stApp .stButton button:contains("Delete"):hover,
-    .stApp .stButton button[aria-label*="Delete"]:hover,
-    .stApp .main .block-container .stButton button[kind="primary"]:contains("Delete"):hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Force scaling on all primary buttons in task rows */
-    .stApp .main .block-container .stColumns .stButton button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Nuclear option for Delete button - maximum specificity */
-    .stApp .main .block-container .stColumns .stButton button[kind="primary"]:hover,
-    .stApp .main .block-container .stColumns .stButton button:contains("Delete"):hover,
-    .stApp .main .block-container .stColumns .stButton button[aria-label*="Delete"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Override any conflicting transforms for primary buttons */
-    .stApp .stButton > button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Ultra-specific Delete button targeting */
-    .stApp .stButton button[data-testid*="delete"]:hover,
-    .stApp .stButton button[key*="delete"]:hover,
-    .stApp .stButton button[help*="Delete"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Force all primary buttons to scale on hover */
-    .stApp .main .block-container .stColumns .stButton button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Last resort - target primary buttons only */
-    .stApp .stButton button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* JavaScript-based scaling as backup */
-    .stApp .stButton button[kind="primary"] {
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Form button scaling - Add Task button */
-    .stApp .stForm .stButton button[kind="primary"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Force all form buttons to scale */
-    .stApp .stForm .stButton button:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Extra specific targeting for Add Task button */
-    .stApp .stForm .stButton > button[kind="primary"]:hover,
-    .stApp .stForm .stButton button:contains("Add Task"):hover,
-    .stApp .stForm .stButton button[aria-label*="Add Task"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Nuclear option for Add Task button */
-    .stApp .main .block-container .stForm .stButton button:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Force ALL buttons to scale on hover - ultimate fallback */
-    .stApp button:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Override any conflicting styles */
-    .stApp .stForm button:hover,
-    .stApp .stButton button:hover,
-    .stApp button[kind="primary"]:hover,
-    .stApp button[kind="secondary"]:hover {
-        transform: scale(1.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    /* Push buttons lower with padding */
-    .stColumns[data-testid="column"] > div:has(.stButton) {
-        padding-top: 1rem !important;
-    }
-    
-    /* Metric cards styling */
-    .metric-container {
-        background: linear-gradient(45deg, #f8f9fa, #e9ecef) !important;
-        border-radius: 10px !important;
-        padding: 1rem !important;
-        margin: 0.5rem 0 !important;
-        border-left: 4px solid #667eea !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+# Initialize StyleHelper and apply all styling
+style_helper = StyleHelper()
+style_helper.apply_all_styling()
 
-# Add JavaScript to force button scaling
-st.markdown("""
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Function to add hover scaling to buttons
-    function addButtonScaling() {
-        console.log('Adding button scaling...');
-        
-        // Target ALL buttons as ultimate fallback
-        const allButtons = document.querySelectorAll('button');
-        console.log('Found', allButtons.length, 'buttons');
-        
-        allButtons.forEach((button, index) => {
-            // Remove existing listeners to avoid duplicates
-            button.removeEventListener('mouseenter', button._mouseEnterHandler);
-            button.removeEventListener('mouseleave', button._mouseLeaveHandler);
-            
-            // Create new handlers
-            button._mouseEnterHandler = function() {
-                console.log('Button hover:', this.textContent);
-                this.style.transform = 'scale(1.1)';
-                this.style.transition = 'all 0.3s ease';
-            };
-            
-            button._mouseLeaveHandler = function() {
-                this.style.transform = 'scale(1)';
-            };
-            
-            // Add event listeners
-            button.addEventListener('mouseenter', button._mouseEnterHandler);
-            button.addEventListener('mouseleave', button._mouseLeaveHandler);
-        });
-        
-        // Specific targeting for different button types
-        const primaryButtons = document.querySelectorAll('.stButton button[kind="primary"]');
-        const formButtons = document.querySelectorAll('.stForm .stButton button');
-        const secondaryButtons = document.querySelectorAll('.stButton button[kind="secondary"]');
-        
-        console.log('Primary buttons:', primaryButtons.length);
-        console.log('Form buttons:', formButtons.length);
-        console.log('Secondary buttons:', secondaryButtons.length);
-    }
-    
-    // Run immediately and on any updates
-    addButtonScaling();
-    
-    // Re-run when Streamlit updates the DOM
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                addButtonScaling();
-            }
-        });
-    });
-    
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-});
-</script>
-""", unsafe_allow_html=True)
-
-# Configuration from environment variables
-# AUTH_TOKEN = os.getenv("NOTION_AUTH_TOKEN") or st.secrets["NOTION_AUTH_TOKEN"]
+#Configuration from secrets
 AUTH_TOKEN = st.secrets["NOTION_AUTH_TOKEN"]
-# DATABASE_ID = os.getenv("NOTION_DATABASE_ID") or st.secrets["NOTION_DATABASE_ID"]
 DATABASE_ID = st.secrets["NOTION_DATABASE_ID"]
-print(AUTH_TOKEN)
-print(DATABASE_ID)
 
 # Initialize task manager
 @st.cache_resource
@@ -418,10 +87,6 @@ with st.form("add_task_form", clear_on_submit=True):
                 else:
                     st.error("❌ Failed to add task.")
                     st.toast("❌ Failed to add task", icon="⚠️")
-
-
-
-st.markdown("---")
 
 # Status filter
 st.subheader("🔍 Filter Tasks")
@@ -489,13 +154,8 @@ if tasks:
                         st.error(f"❌ Failed to update status: {e}")
                         st.toast("❌ Failed to update status", icon="⚠️")
         with col4:
-            # Green checkmark for Done status
-            if task['status'] == "Done":
-                st.markdown('<div style="text-align: center; font-size: 1.5rem; color: #28a745;">✅</div>', unsafe_allow_html=True)
-            elif task['status'] == "In progress":
-                st.markdown('<div style="text-align: center; font-size: 1.5rem; color: #007bff;">⏳</div>', unsafe_allow_html=True)
-            else:  # Not started
-                st.markdown('<div style="text-align: center; font-size: 1.5rem; color: #6c757d;">⭕</div>', unsafe_allow_html=True)
+            # Status icon using StyleHelper
+            style_helper.create_status_icon(task['status'])
         with col5:
             if st.button("Delete", type="primary", key=f"delete_{task['id']}", help="Delete task"):
                 with st.spinner("Deleting task..."):
@@ -505,10 +165,10 @@ if tasks:
                         st.rerun()
                     else:
                         st.error("❌ Failed to delete task. Please try again.")
+        st.markdown("---")
         
         # Handle editing mode for this specific task - show right below the row
         if st.session_state.get(f"editing_{task['id']}", False):
-            st.markdown("---")
             col1, col2 = st.columns([5, 1])
             with col1:
                 new_name = st.text_input(
@@ -543,22 +203,21 @@ if tasks:
                 st.markdown('</div>', unsafe_allow_html=True)
             st.markdown("---")
     
-    st.markdown("---")
     
     # Show summary
     if status_filter == "All":
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Total Tasks", len(tasks))
-        with col2:
-            in_progress_count = len([task for task in tasks if task['status'] == 'In progress'])
-            st.metric("In Progress", in_progress_count)
-        with col3:
-            not_started_count = len([task for task in tasks if task['status'] == 'Not started'])
-            st.metric("Not Started", not_started_count)
-        with col4:
-            done_count = len([task for task in tasks if task['status'] == 'Done'])
-            st.metric("Done", done_count)
+        # Calculate counts
+        in_progress_count = len([task for task in tasks if task['status'] == 'In progress'])
+        not_started_count = len([task for task in tasks if task['status'] == 'Not started'])
+        done_count = len([task for task in tasks if task['status'] == 'Done'])
+        
+        # Create bordered metrics using StyleHelper
+        style_helper.create_bordered_metrics(
+            total_tasks=len(tasks),
+            in_progress=in_progress_count,
+            not_started=not_started_count,
+            done=done_count
+        )
     else:
         st.metric(f"Filtered Tasks ({status_filter})", len(tasks))
         

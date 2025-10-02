@@ -1,6 +1,35 @@
+"""
+Notion Database Manager Module
+
+This module provides a task management interface for Notion databases.
+It handles all communication with the Notion API for CRUD operations on tasks.
+
+Classes:
+    NotionTaskManager: Main class for managing tasks in a Notion database
+
+Functions:
+    - list_tasks: Retrieve tasks with optional status filtering
+    - add_task: Create new tasks
+    - delete_task: Archive tasks
+    - restore_task: Unarchive tasks
+    - update_task_status: Modify task status
+    - update_task_name: Modify task name
+"""
+
 from notion_client import Client
 
+
 class NotionTaskManager:
+    """
+    A manager class for interacting with Notion database to perform task operations.
+    
+    This class provides methods to create, read, update, and delete tasks in a Notion
+    database. It uses the official Notion API client to communicate with Notion.
+    
+    Attributes:
+        notion (Client): The Notion API client instance
+        database_id (str): The ID of the Notion database to manage
+    """
     def __init__(self, auth_token, database_id):
         self.notion = Client(auth=auth_token)
         self.database_id = database_id
@@ -136,38 +165,3 @@ class NotionTaskManager:
         except Exception as e:
             print(f"Error updating task name: {e}")
             return None
-
-# Example usage
-# if __name__ == "__main__":
-#     import os
-#     from dotenv import load_dotenv
-    
-#     # Load environment variables
-#     load_dotenv()
-    
-#     # Configuration
-#     AUTH_TOKEN = os.getenv("NOTION_AUTH_TOKEN")
-#     DATABASE_ID = os.getenv("NOTION_DATABASE_ID")
-    
-#     # Initialize task manager
-#     task_manager = NotionTaskManager(AUTH_TOKEN, DATABASE_ID)
-    
-#     # List all tasks
-#     print("=== All Tasks ===")
-#     all_tasks = task_manager.list_tasks()
-#     for task in all_tasks:
-#         print(f"ID: {task['id']}, Name: {task['name']}, Status: {task['status']}")
-    
-    # # List only "In Progress" tasks
-    # print("\n=== In Progress Tasks ===")
-    # in_progress_tasks = task_manager.list_tasks("In Progress")
-    # for task in in_progress_tasks:
-    #     print(f"ID: {task['id']}, Name: {task['name']}, Status: {task['status']}")
-    
-    # # Add a new task
-    # print("\n=== Adding New Task ===")
-    # new_task = task_manager.add_task("New Task from Python", "Not Started")
-    
-    # Example of deleting a task (uncomment and provide valid task ID)
-    # print("\n=== Deleting Task ===")
-    # task_manager.delete_task("your-task-id-here")
