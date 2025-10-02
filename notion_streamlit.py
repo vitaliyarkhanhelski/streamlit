@@ -1,9 +1,9 @@
 """
-Notion Task Manager - Streamlit Web Application
+Task Manager - Streamlit Web Application
 
 This is the main Streamlit application that provides a beautiful web interface
-for managing tasks in a Notion database. Users can create, view, edit, update,
-and delete tasks with real-time synchronization to Notion.
+for managing tasks in either a Notion database or SQLite database. Users can create,
+view, edit, update, and delete tasks with real-time synchronization.
 
 Features:
     - Add new tasks with custom status
@@ -13,21 +13,25 @@ Features:
     - Delete (archive) tasks
     - Visual status icons and metrics dashboard
     - Beautiful gradient UI with custom styling
+    - Switch between Notion and SQLite backends
 
 Dependencies:
     - streamlit: Web application framework
     - pandas: Data manipulation
     - notion_manager: Notion API integration
+    - sql_manager: SQLite database integration
     - style_helper: Custom CSS and JavaScript styling
 
 Configuration:
-    Requires Streamlit secrets in .streamlit/secrets.toml:
+    For Notion backend, requires Streamlit secrets in .streamlit/secrets.toml:
     - NOTION_AUTH_TOKEN: Notion API authentication token
     - NOTION_DATABASE_ID: Target Notion database ID
     
     Example .streamlit/secrets.toml:
         NOTION_AUTH_TOKEN = "secret_xxxxxxxxxxxxx"
         NOTION_DATABASE_ID = "xxxxxxxxxxxxx"
+    
+    For SQLite backend, uses local tasks.db file (created automatically)
 
 Usage:
     streamlit run notion_streamlit.py
@@ -36,11 +40,12 @@ Usage:
 import streamlit as st
 import pandas as pd
 from notion_manager import NotionTaskManager
+from sql_manager import SqlTaskManager
 from style_helper import StyleHelper
 
 # Page configuration
 st.set_page_config(
-    page_title="Notion Task Manager",
+    page_title="Task Manager",
     page_icon="📋",
     layout="wide"
 )
@@ -49,21 +54,56 @@ st.set_page_config(
 style_helper = StyleHelper()
 style_helper.apply_all_styling()
 
-#Configuration from secrets
-AUTH_TOKEN = st.secrets["NOTION_AUTH_TOKEN"]
-DATABASE_ID = st.secrets["NOTION_DATABASE_ID"]
+# Sidebar for database selection
+with st.sidebar:
+    st.header("⚙️ Settings")
+    database_backend = st.radio(
+        "Choose Database Backend:",
+        ["SQLite", "Notion"],
+        index=0,
+        help="Select which database to use for storing tasks"
+    )
+    
+    st.markdown("---")
+    
+    if database_backend == "Notion":
+        st.info("🔗 Using Notion API")
+        st.caption("Requires configuration in .streamlit/secrets.toml")
+    else:
+        st.info("💾 Using Local SQLite")
+        st.caption("Data stored in tasks.db file")
 
 # Initialize task manager
 @st.cache_resource
-def get_task_manager():
-    return NotionTaskManager(AUTH_TOKEN, DATABASE_ID)
+def get_task_manager(backend):
+    """
+    Get the appropriate task manager based on the selected backend.
+    
+    Args:
+        backend (str): Either "Notion" or "SQLite"
+    
+    Returns:
+        NotionTaskManager or SqlTaskManager instance
+    """
+    if backend == "Notion":
+        try:
+            auth_token = st.secrets["NOTION_AUTH_TOKEN"]
+            database_id = st.secrets["NOTION_DATABASE_ID"]
+            return NotionTaskManager(auth_token, database_id)
+        except Exception as e:
+            st.error(f"❌ Notion configuration error: {e}")
+            st.info("💡 Falling back to SQLite. Please configure Notion secrets to use Notion backend.")
+            return SqlTaskManager()
+    else:
+        return SqlTaskManager()
 
 # Main app
-st.title("📋 Notion Task Manager")
+backend_icon = "🔗" if database_backend == "Notion" else "💾"
+st.title(f"📋 Task Manager {backend_icon} {database_backend}")
 st.markdown("---")
 
 # Initialize task manager
-task_manager = get_task_manager()
+task_manager = get_task_manager(database_backend)
 
 st.subheader("➕ Add New Task")
 
