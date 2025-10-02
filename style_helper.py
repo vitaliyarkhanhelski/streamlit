@@ -2,23 +2,20 @@
 Style Helper Module for Streamlit Applications
 
 This module provides utility classes and methods for managing custom styling
-in Streamlit applications. It handles loading external CSS files, injecting
-JavaScript for dynamic UI behaviors, and creating custom styled components.
+in Streamlit applications. It handles loading external CSS files and creating
+custom styled components.
 
 Classes:
     StyleHelper: Main utility class for styling management
 
 Key Features:
     - Load and apply external CSS files
-    - Inject JavaScript for button hover animations
     - Create custom styled components (metrics, status icons)
     - Apply inline CSS and JavaScript dynamically
-    - DOM mutation observer for dynamic content updates
 
 Components:
     - Bordered metrics dashboard with task statistics
     - Status icons with color coding (✅ Done, ⏳ In Progress, ⭕ Not Started)
-    - Button scaling animations via JavaScript event listeners
 
 Usage:
     from style_helper import StyleHelper
@@ -35,11 +32,10 @@ import os
 
 class StyleHelper:
     """
-    Helper class to manage CSS and JavaScript styling for Streamlit applications.
+    Helper class to manage CSS styling for Streamlit applications.
     
     This class provides methods to load external stylesheets, apply custom CSS,
-    inject JavaScript for dynamic behaviors, and create pre-styled UI components
-    like metrics dashboards and status icons.
+    and create pre-styled UI components like metrics dashboards and status icons.
     
     Attributes:
         css_file (str): Path to the external CSS file to load
@@ -47,8 +43,7 @@ class StyleHelper:
     Methods:
         load_css_file: Load CSS content from external file
         apply_css: Apply CSS styling to the app
-        apply_button_scaling_js: Add JavaScript for button hover effects
-        apply_all_styling: Apply both CSS and JavaScript styling
+        apply_all_styling: Apply CSS styling to the app
         create_custom_css: Static method to apply inline CSS
         create_custom_js: Static method to apply inline JavaScript
         create_bordered_metrics: Static method to create metrics dashboard
@@ -77,75 +72,9 @@ class StyleHelper:
         if css_content:
             st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
     
-    def apply_button_scaling_js(self):
-        """Apply JavaScript for button scaling effects"""
-        js_code = """
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Function to add hover scaling to buttons
-            function addButtonScaling() {
-                console.log('Adding button scaling...');
-                
-                // Target ALL buttons as ultimate fallback
-                const allButtons = document.querySelectorAll('button');
-                console.log('Found', allButtons.length, 'buttons');
-                
-                allButtons.forEach((button, index) => {
-                    // Remove existing listeners to avoid duplicates
-                    button.removeEventListener('mouseenter', button._mouseEnterHandler);
-                    button.removeEventListener('mouseleave', button._mouseLeaveHandler);
-                    
-                    // Create new handlers
-                    button._mouseEnterHandler = function() {
-                        console.log('Button hover:', this.textContent);
-                        this.style.transform = 'scale(1.1)';
-                        this.style.transition = 'all 0.3s ease';
-                    };
-                    
-                    button._mouseLeaveHandler = function() {
-                        this.style.transform = 'scale(1)';
-                    };
-                    
-                    // Add event listeners
-                    button.addEventListener('mouseenter', button._mouseEnterHandler);
-                    button.addEventListener('mouseleave', button._mouseLeaveHandler);
-                });
-                
-                // Specific targeting for different button types
-                const primaryButtons = document.querySelectorAll('.stButton button[kind="primary"]');
-                const formButtons = document.querySelectorAll('.stForm .stButton button');
-                const secondaryButtons = document.querySelectorAll('.stButton button[kind="secondary"]');
-                
-                console.log('Primary buttons:', primaryButtons.length);
-                console.log('Form buttons:', formButtons.length);
-                console.log('Secondary buttons:', secondaryButtons.length);
-            }
-            
-            // Run immediately and on any updates
-            addButtonScaling();
-            
-            // Re-run when Streamlit updates the DOM
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                        addButtonScaling();
-                    }
-                });
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-        </script>
-        """
-        st.markdown(js_code, unsafe_allow_html=True)
-    
     def apply_all_styling(self):
-        """Apply both CSS and JavaScript styling"""
+        """Apply CSS styling"""
         self.apply_css()
-        self.apply_button_scaling_js()
     
     @staticmethod
     def create_custom_css(css_rules):

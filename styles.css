@@ -14,8 +14,6 @@
  *   3. BUTTONS - Color schemes and hover effects for different button types
  *   4. SPACING & LAYOUT - Margins, padding, and box model adjustments
  * 
- * Note: Button scaling animations are handled by JavaScript in style_helper.py
- * 
  * Color Palette:
  *   - Background gradient: #c6cffd to #d0c3e8 (purple/lavender)
  *   - Primary text: #2c3e50 (dark blue-gray)
@@ -98,7 +96,6 @@
     padding: 0.5rem 1rem !important;
     font-size: 0.9rem !important;
     font-weight: 500 !important;
-    transition: all 0.3s ease !important;
 }
 
 .stButton > button[kind="secondary"]:hover {
@@ -112,7 +109,6 @@
     background-color: #28a745 !important;
     color: white !important;
     border: none !important;
-    transition: all 0.3s ease !important;
 }
 
 .stButton > button[kind="primary"]:hover {
@@ -127,8 +123,6 @@
 .stForm .stButton > button[kind="primary"]:hover {
     background-color: #ff3333 !important;
 }
-
-/* Note: Button scaling is handled by JavaScript in style_helper.py */
 
 /* ========================================
    SPACING & LAYOUT
