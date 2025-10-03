@@ -96,6 +96,8 @@ class TaskManagerHelper:
                     
                     st.success(f"✅ Successfully synced {success_count} tasks from Notion to SQLite!")
                     st.toast(f"🎉 Synced {success_count} tasks!", icon="✅")
+                    # Small delay to let the toast display before switching
+                    time.sleep(1.5)
                     # Switch to SQLite backend to view synced data
                     st.session_state.selected_backend = "SQLite"
                     st.rerun()
