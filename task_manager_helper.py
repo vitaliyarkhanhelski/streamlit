@@ -40,24 +40,15 @@ class TaskManagerHelper:
         """
         st.header("⚙️ Settings")
         
-        # Initialize selected backend in session state if not set
-        if 'selected_backend' not in st.session_state:
-            st.session_state.selected_backend = DB_SQLITE
-        
-        # Determine the index based on the selected backend
+        # Radio button with default value SQLite
         backend_options = DB_OPTIONS
-        default_index = backend_options.index(st.session_state.selected_backend)
-        
         database_backend = st.radio(
             "Choose Database Backend:",
             backend_options,
-            index=default_index,
+            index=0,  # Default to SQLite (first option)
             key="database_backend_radio",
             help="Select which database to use for storing tasks"
         )
-        
-        # Update the session state when user changes selection
-        st.session_state.selected_backend = database_backend
         
         st.markdown("---")
         
