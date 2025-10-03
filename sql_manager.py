@@ -221,4 +221,22 @@ class SqlTaskManager(TaskManagerInterface):
         except Exception as e:
             print(f"Error clearing tasks: {e}")
             return False
+    
+    def clear_tasks_by_status(self, status):
+        """Delete all tasks with a specific status"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('DELETE FROM tasks WHERE status = ? AND archived = 0', (status,))
+            deleted_count = cursor.rowcount
+            
+            conn.commit()
+            conn.close()
+            
+            print(f"Cleared {deleted_count} tasks with status '{status}' from SQLite database")
+            return True
+        except Exception as e:
+            print(f"Error clearing tasks by status: {e}")
+            return False
 

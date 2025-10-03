@@ -210,3 +210,26 @@ class NotionTaskManager(TaskManagerInterface):
         except Exception as e:
             print(f"Error clearing tasks: {e}")
             return False
+    
+    def clear_tasks_by_status(self, status):
+        """Archive all tasks with a specific status from the Notion database"""
+        try:
+            # Get tasks with the specified status
+            tasks = self.list_tasks(status_filter=status)
+            
+            if not tasks:
+                print(f"No tasks with status '{status}' to clear")
+                return True
+            
+            # Archive each task
+            archived_count = 0
+            for task in tasks:
+                result = self.delete_task(task['id'])
+                if result:
+                    archived_count += 1
+            
+            print(f"Cleared {archived_count} tasks with status '{status}' from Notion database")
+            return True
+        except Exception as e:
+            print(f"Error clearing tasks by status: {e}")
+            return False

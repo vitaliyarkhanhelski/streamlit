@@ -109,4 +109,17 @@ class TaskManagerInterface(ABC):
             bool: True if successful, False otherwise
         """
         pass
+    
+    @abstractmethod
+    def clear_tasks_by_status(self, status):
+        """
+        Clear all tasks with a specific status.
+        
+        Args:
+            status (str): Status to filter tasks by (e.g., "Done", "Not started", "In progress")
+        
+        Returns:
+            bool: True if successful, False otherwise
+        """
+        pass
 
