@@ -19,23 +19,41 @@ Functions:
 import sqlite3
 import uuid
 from datetime import datetime
+from task_manager_interface import TaskManagerInterface
 
 
-class SqlTaskManager:
+class SqlTaskManager(TaskManagerInterface):
     """
     A manager class for interacting with SQLite database to perform task operations.
     
     This class provides methods to create, read, update, and delete tasks in a SQLite
     database. It mirrors the interface of NotionTaskManager for easy switching.
     
+    Implemented as a Singleton to ensure only one instance exists throughout the application.
+    
     Attributes:
         db_path (str): Path to the SQLite database file
     """
     
+    _instance = None
+    
+    def __new__(cls, db_path="tasks.db"):
+        """Control instance creation to ensure singleton pattern"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+    
+    @staticmethod
+    def get_instance(db_path="tasks.db"):
+        """Get the singleton SqlTaskManager instance"""
+        return SqlTaskManager(db_path)
+    
     def __init__(self, db_path="tasks.db"):
-        """Initialize the SQLite task manager and create tables if needed"""
-        self.db_path = db_path
-        self._init_database()
+        """Initialize the SQLite task manager and create tables if needed. Only runs once for the singleton instance."""
+        # Only initialize once
+        if not hasattr(self, 'db_path'):
+            self.db_path = db_path
+            self._init_database()
     
     def _init_database(self):
         """Create the tasks table if it doesn't exist"""
@@ -186,4 +204,21 @@ class SqlTaskManager:
         except Exception as e:
             print(f"Error updating task name: {e}")
             return None
+    
+    def clear_all_tasks(self):
+        """Delete all tasks from the database"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('DELETE FROM tasks')
+            
+            conn.commit()
+            conn.close()
+            
+            print("All tasks cleared from SQLite database")
+            return True
+        except Exception as e:
+            print(f"Error clearing tasks: {e}")
+            return False
 

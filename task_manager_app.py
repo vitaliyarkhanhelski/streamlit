@@ -42,6 +42,8 @@ import pandas as pd
 from notion_manager import NotionTaskManager
 from sql_manager import SqlTaskManager
 from style_helper import StyleHelper
+from task_manager_helper import TaskManagerHelper
+import time
 
 # Page configuration
 st.set_page_config(
@@ -57,12 +59,25 @@ style_helper.apply_all_styling()
 # Sidebar for database selection
 with st.sidebar:
     st.header("⚙️ Settings")
+    
+    # Initialize selected backend in session state if not set
+    if 'selected_backend' not in st.session_state:
+        st.session_state.selected_backend = "SQLite"
+    
+    # Determine the index based on the selected backend
+    backend_options = ["SQLite", "Notion"]
+    default_index = backend_options.index(st.session_state.selected_backend)
+    
     database_backend = st.radio(
         "Choose Database Backend:",
-        ["SQLite", "Notion"],
-        index=0,
+        backend_options,
+        index=default_index,
+        key="database_backend_radio",
         help="Select which database to use for storing tasks"
     )
+    
+    # Update the session state when user changes selection
+    st.session_state.selected_backend = database_backend
     
     st.markdown("---")
     
@@ -72,30 +87,11 @@ with st.sidebar:
     else:
         st.info("💾 Using Local SQLite")
         st.caption("Data stored in tasks.db file")
-
-# Initialize task manager
-@st.cache_resource
-def get_task_manager(backend):
-    """
-    Get the appropriate task manager based on the selected backend.
     
-    Args:
-        backend (str): Either "Notion" or "SQLite"
+    st.markdown("---")
     
-    Returns:
-        NotionTaskManager or SqlTaskManager instance
-    """
-    if backend == "Notion":
-        try:
-            auth_token = st.secrets["NOTION_AUTH_TOKEN"]
-            database_id = st.secrets["NOTION_DATABASE_ID"]
-            return NotionTaskManager(auth_token, database_id)
-        except Exception as e:
-            st.error(f"❌ Notion configuration error: {e}")
-            st.info("💡 Falling back to SQLite. Please configure Notion secrets to use Notion backend.")
-            return SqlTaskManager()
-    else:
-        return SqlTaskManager()
+    # Sync button: Copy from Notion to SQLite (handled by helper)
+    TaskManagerHelper.show_sync_confirmation_dialog()
 
 # Main app
 backend_icon = "🔗" if database_backend == "Notion" else "💾"
@@ -103,7 +99,7 @@ st.title(f"📋 Task Manager {backend_icon} {database_backend}")
 st.markdown("---")
 
 # Initialize task manager
-task_manager = get_task_manager(database_backend)
+task_manager = TaskManagerHelper.get_task_manager(database_backend)
 
 st.subheader("➕ Add New Task")
 
@@ -143,126 +139,131 @@ with st.spinner("Loading tasks..."):
     else:
         tasks = task_manager.list_tasks(status_filter)
 
-if tasks:
-    # Convert to DataFrame
-    df = pd.DataFrame(tasks)
-    
-    # Display the table with delete buttons
-    st.markdown("<h3 style='text-align: center;'>📊 All Tasks</h3>", unsafe_allow_html=True)
-    st.markdown("---")
-    
-    for task in tasks:
-        col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
-        with col1:
-            # Show task name as text
-            st.write(f"**{task['name']}**")
-        with col2:
-            # Edit button
-            if st.button("Edit", key=f"edit_{task['id']}", help="Edit task name", type="secondary"):
-                st.session_state[f"editing_{task['id']}"] = True
-                st.rerun()
-        with col3:
-            # Create clickable status buttons
-            status_options = ["Not started", "In progress", "Done"]
-            current_status = task['status']
-            
-            # Find current status index
-            try:
-                current_index = status_options.index(current_status)
-            except ValueError:
-                current_index = 0
-            
-            # Create selectbox for status change
-            new_status = st.selectbox(
-                "Status:",
-                status_options,
-                index=current_index,
-                key=f"status_{task['id']}",
-                label_visibility="collapsed"
-            )
-            
-            # Check if status changed
-            if new_status != current_status:
-                with st.spinner("Updating status..."):
-                    # Update task status in Notion
-                    try:
-                        task_manager.update_task_status(task['id'], new_status)
-                        st.success(f"✅ Status updated to {new_status}")
-                        st.toast(f"🎉 Status changed to {new_status}!", icon="✅")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"❌ Failed to update status: {e}")
-                        st.toast("❌ Failed to update status", icon="⚠️")
-        with col4:
-            # Status icon using StyleHelper
-            style_helper.create_status_icon(task['status'])
-        with col5:
-            if st.button("Delete", type="primary", key=f"delete_{task['id']}", help="Delete task"):
-                with st.spinner("Deleting task..."):
-                    result = task_manager.delete_task(task['id'])
-                    if result:
-                        st.success(f"✅ Task '{task['name']}' deleted successfully!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Failed to delete task. Please try again.")
+# Check if tasks is None (error) or just empty list (no tasks)
+if tasks is not None:
+    if tasks:
+        # Convert to DataFrame
+        df = pd.DataFrame(tasks)
+        
+        # Display the table with delete buttons
+        st.markdown("<h3 style='text-align: center;'>📊 All Tasks</h3>", unsafe_allow_html=True)
         st.markdown("---")
         
-        # Handle editing mode for this specific task - show right below the row
-        if st.session_state.get(f"editing_{task['id']}", False):
-            col1, col2 = st.columns([5, 1])
+        for task in tasks:
+            col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
             with col1:
-                new_name = st.text_input(
-                    "Task Name:",
-                    value=task['name'],
-                    key=f"edit_name_{task['id']}",
-                    label_visibility="visible"
-                )
+                # Show task name as text
+                st.write(f"**{task['name']}**")
             with col2:
-                # Buttons container with much closer spacing
-                st.markdown('<div style="padding-top: 1.75rem;">', unsafe_allow_html=True)
-                button_col1, button_col2 = st.columns([1, 1], gap="small")
-                with button_col1:
-                    if st.button("Save", key=f"save_{task['id']}", type="primary"):
-                        if new_name.strip() and new_name != task['name']:
-                            with st.spinner("Updating name..."):
-                                try:
-                                    task_manager.update_task_name(task['id'], new_name.strip())
-                                    st.success(f"✅ Name updated to '{new_name.strip()}'")
-                                    st.toast(f"🎉 Task name updated!", icon="✅")
-                                    st.session_state[f"editing_{task['id']}"] = False
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"❌ Failed to update name: {e}")
-                                    st.toast("❌ Failed to update name", icon="⚠️")
+                # Edit button
+                if st.button("Edit", key=f"edit_{task['id']}", help="Edit task name", type="secondary"):
+                    st.session_state[f"editing_{task['id']}"] = True
+                    st.rerun()
+            with col3:
+                # Create clickable status buttons
+                status_options = ["Not started", "In progress", "Done"]
+                current_status = task['status']
+                
+                # Find current status index
+                try:
+                    current_index = status_options.index(current_status)
+                except ValueError:
+                    current_index = 0
+                
+                # Create selectbox for status change
+                new_status = st.selectbox(
+                    "Status:",
+                    status_options,
+                    index=current_index,
+                    key=f"status_{task['id']}",
+                    label_visibility="collapsed"
+                )
+                
+                # Check if status changed
+                if new_status != current_status:
+                    with st.spinner("Updating status..."):
+                        # Update task status in Notion
+                        try:
+                            task_manager.update_task_status(task['id'], new_status)
+                            st.success(f"✅ Status updated to {new_status}")
+                            st.toast(f"🎉 Status changed to {new_status}!", icon="✅")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Failed to update status: {e}")
+                            st.toast("❌ Failed to update status", icon="⚠️")
+            with col4:
+                # Status icon using StyleHelper
+                style_helper.create_status_icon(task['status'])
+            with col5:
+                if st.button("Delete", type="primary", key=f"delete_{task['id']}", help="Delete task"):
+                    with st.spinner("Deleting task..."):
+                        result = task_manager.delete_task(task['id'])
+                        if result:
+                            st.success(f"✅ Task '{task['name']}' deleted successfully!")
+                            st.rerun()
                         else:
-                            st.warning("Please enter a different name")
-                with button_col2:
-                    if st.button("Cancel", key=f"cancel_{task['id']}"):
-                        st.session_state[f"editing_{task['id']}"] = False
-                        st.rerun()
-                st.markdown('</div>', unsafe_allow_html=True)
+                            st.error("❌ Failed to delete task. Please try again.")
             st.markdown("---")
-    
-    
-    # Show summary
-    if status_filter == "All":
-        # Calculate counts
-        in_progress_count = len([task for task in tasks if task['status'] == 'In progress'])
-        not_started_count = len([task for task in tasks if task['status'] == 'Not started'])
-        done_count = len([task for task in tasks if task['status'] == 'Done'])
+            
+            # Handle editing mode for this specific task - show right below the row
+            if st.session_state.get(f"editing_{task['id']}", False):
+                col1, col2 = st.columns([5, 1])
+                with col1:
+                    new_name = st.text_input(
+                        "Task Name:",
+                        value=task['name'],
+                        key=f"edit_name_{task['id']}",
+                        label_visibility="visible"
+                    )
+                with col2:
+                    # Buttons container with much closer spacing
+                    st.markdown('<div style="padding-top: 1.75rem;">', unsafe_allow_html=True)
+                    button_col1, button_col2 = st.columns([1, 1], gap="small")
+                    with button_col1:
+                        if st.button("Save", key=f"save_{task['id']}", type="primary"):
+                            if new_name.strip() and new_name != task['name']:
+                                with st.spinner("Updating name..."):
+                                    try:
+                                        task_manager.update_task_name(task['id'], new_name.strip())
+                                        st.success(f"✅ Name updated to '{new_name.strip()}'")
+                                        st.toast(f"🎉 Task name updated!", icon="✅")
+                                        st.session_state[f"editing_{task['id']}"] = False
+                                        st.rerun()
+                                    except Exception as e:
+                                        st.error(f"❌ Failed to update name: {e}")
+                                        st.toast("❌ Failed to update name", icon="⚠️")
+                            else:
+                                st.warning("Please enter a different name")
+                    with button_col2:
+                        if st.button("Cancel", key=f"cancel_{task['id']}"):
+                            st.session_state[f"editing_{task['id']}"] = False
+                            st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("---")
         
-        # Create bordered metrics using StyleHelper
-        style_helper.create_bordered_metrics(
-            total_tasks=len(tasks),
-            in_progress=in_progress_count,
-            not_started=not_started_count,
-            done=done_count
-        )
+        # Show summary
+        if status_filter == "All":
+            # Calculate counts
+            in_progress_count = len([task for task in tasks if task['status'] == 'In progress'])
+            not_started_count = len([task for task in tasks if task['status'] == 'Not started'])
+            done_count = len([task for task in tasks if task['status'] == 'Done'])
+            
+            # Create bordered metrics using StyleHelper
+            style_helper.create_bordered_metrics(
+                total_tasks=len(tasks),
+                in_progress=in_progress_count,
+                not_started=not_started_count,
+                done=done_count
+            )
+        else:
+            st.metric(f"Filtered Tasks ({status_filter})", len(tasks))
     else:
-        st.metric(f"Filtered Tasks ({status_filter})", len(tasks))
+        # Empty list - no tasks yet
+        st.info("📝 No tasks yet. Add your first task above!")
         
 else:
-    st.error("No tasks found or error loading tasks")
+    # tasks is None - error occurred
+    st.error("❌ Error loading tasks. Please check your database connection.")
 
 # Refresh button
 if st.button("🔄 Refresh Tasks", type="secondary"):

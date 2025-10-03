@@ -38,4 +38,9 @@ ENV/
 .DS_Store
 Thumbs.db
 
+# Streamlit
 .streamlit/secrets.toml
+
+# Database files
+tasks.db
+*.db

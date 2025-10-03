@@ -17,22 +17,44 @@ Functions:
 """
 
 from notion_client import Client
+import streamlit as st
+from task_manager_interface import TaskManagerInterface
 
-
-class NotionTaskManager:
+class NotionTaskManager(TaskManagerInterface):
     """
     A manager class for interacting with Notion database to perform task operations.
     
     This class provides methods to create, read, update, and delete tasks in a Notion
     database. It uses the official Notion API client to communicate with Notion.
     
+    Implemented as a Singleton to ensure only one instance exists throughout the application.
+    
     Attributes:
         notion (Client): The Notion API client instance
         database_id (str): The ID of the Notion database to manage
     """
-    def __init__(self, auth_token, database_id):
-        self.notion = Client(auth=auth_token)
-        self.database_id = database_id
+    
+    _instance = None
+    
+    def __new__(cls):
+        """Control instance creation to ensure singleton pattern"""
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    @staticmethod
+    def get_instance():
+        """Get the singleton NotionTaskManager instance"""
+        return NotionTaskManager()
+    
+    def __init__(self):
+        """Initialize the NotionTaskManager. Only runs once for the singleton instance."""
+        # Only initialize once
+        if not hasattr(self, 'notion'):
+            auth_token = st.secrets["NOTION_AUTH_TOKEN"]
+            database_id = st.secrets["NOTION_DATABASE_ID"]
+            self.notion = Client(auth=auth_token)
+            self.database_id = database_id
     
     def list_tasks(self, status_filter=None):
         """List all tasks, optionally filtered by status"""
@@ -165,3 +187,26 @@ class NotionTaskManager:
         except Exception as e:
             print(f"Error updating task name: {e}")
             return None
+    
+    def clear_all_tasks(self):
+        """Archive all tasks from the Notion database"""
+        try:
+            # Get all tasks
+            tasks = self.list_tasks()
+            
+            if not tasks:
+                print("No tasks to clear")
+                return True
+            
+            # Archive each task
+            archived_count = 0
+            for task in tasks:
+                result = self.delete_task(task['id'])
+                if result:
+                    archived_count += 1
+            
+            print(f"All tasks cleared from Notion database ({archived_count} tasks archived)")
+            return True
+        except Exception as e:
+            print(f"Error clearing tasks: {e}")
+            return False
