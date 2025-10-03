@@ -66,15 +66,36 @@ class StyleHelper:
             st.error(f"Error loading CSS file: {e}")
             return ""
     
-    def apply_css(self):
-        """Apply CSS styling to the Streamlit app"""
+    def apply_css(self, database_backend=None):
+        """Apply CSS styling to the Streamlit app with optional backend-specific background"""
         css_content = self.load_css_file()
         if css_content:
             st.markdown(f"<style>{css_content}</style>", unsafe_allow_html=True)
+        
+        # Apply backend-specific background gradient
+        if database_backend:
+            # Define color variables for each backend
+            if database_backend == "Notion":
+                color_start = "#ccc9fd"  # Notion - slightly warmer/pinker
+                color_end = "#d5c7e8"
+            else:  # SQLite
+                color_start = "#bfcbff"  # SQLite - more blue/cooler purple
+                color_end = "#c8bfeb"
+            
+            # Apply gradient with interpolated colors
+            background_css = f"""
+            <style>
+            .stApp {{
+                background: linear-gradient(135deg, {color_start} 0%, {color_end} 100%) !important;
+                min-height: 100vh;
+            }}
+            </style>
+            """
+            st.markdown(background_css, unsafe_allow_html=True)
     
-    def apply_all_styling(self):
-        """Apply CSS styling"""
-        self.apply_css()
+    def apply_all_styling(self, database_backend=None):
+        """Apply CSS styling with optional backend-specific customization"""
+        self.apply_css(database_backend)
     
     @staticmethod
     def create_custom_css(css_rules):

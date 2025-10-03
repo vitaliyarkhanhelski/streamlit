@@ -15,7 +15,8 @@
  *   4. SPACING & LAYOUT - Margins, padding, and box model adjustments
  * 
  * Color Palette:
- *   - Background gradient: #c6cffd to #d0c3e8 (purple/lavender)
+ *   - Background gradient (SQLite): #bfcbff to #c8bfeb (more blue/cool purple)
+ *   - Background gradient (Notion): #ccc9fd to #d5c7e8 (warmer purple/pink)
  *   - Primary text: #2c3e50 (dark blue-gray)
  *   - Headers: #1a1a1a (near black)
  *   - Primary buttons: #28a745 (green) / #ff4b4b (red for forms)
@@ -29,11 +30,9 @@
    PAGE LAYOUT
    ======================================== */
 
-/* Page background - lighter gradient */
-.stApp {
-    background: linear-gradient(135deg, #c6cffd 0%, #d0c3e8 100%) !important;
-    min-height: 100vh;
-}
+/* Page background - dynamically set based on database backend
+   (SQLite: purple/lavender gradient, Notion: peachy/green gradient)
+   See style_helper.py for backend-specific backgrounds */
 
 /* Main content area background */
 .main .block-container {

@@ -47,13 +47,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize StyleHelper and apply all styling
-style_helper = StyleHelper()
-style_helper.apply_all_styling()
-
 # Sidebar for database selection
 with st.sidebar:
     database_backend = TaskManagerHelper.show_sidebar_settings()
+
+# Initialize StyleHelper and apply styling with backend-specific background
+style_helper = StyleHelper()
+style_helper.apply_all_styling(database_backend)
 
 # Main app header
 TaskManagerHelper.show_app_header(database_backend)
